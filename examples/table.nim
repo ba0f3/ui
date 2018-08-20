@@ -1,5 +1,8 @@
-
 import ui
+
+
+proc cellValue(row, col: int): ptr TableValue =
+    result = newTableValueString("hello row " & $row & " x col " & $col)
 
 proc main*() =
   var mainwin: Window
@@ -16,12 +19,15 @@ proc main*() =
   let box = newVerticalBox(true)
   mainwin.setChild(box)
 
-  let table = newTable(@[TableValueTypeString, TableValueTypeInt])
+
+
+  let table = newTable(@[TableValueTypeString, TableValueTypeInt], cellValue)
   table.appendTextColumn("text 1", 1, 1, nil)
   table.appendTextColumn("text 2", 2, 0, nil)
   table.appendTextColumn("text 3", 3, 0, nil)
   table.appendTextColumn("text 4", 4, 0, nil)
   table.appendTextColumn("text 5", 5, 0, nil)
+
 
   box.add(table, true)
 

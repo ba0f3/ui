@@ -1025,7 +1025,7 @@ type
   TableNumColumns* = proc (a1: ptr TableModelHandler, a2: ptr rawui.TableModel): cint {.cdecl.}
   TableColumnType* = proc (a1: ptr TableModelHandler, a2: ptr TableModel, a3: cint): TableValueType {.cdecl.}
   TableNumRows* = proc (a1: ptr TableModelHandler, a2: ptr TableModel): cint {.cdecl.}
-  TableCellValue* = proc (mh: ptr TableModelHandler, m: ptr TableModel, row: int, column: int): ptr TableValue {.cdecl.}
+  TableCellValue* = proc (mh: ptr TableModelHandler, m: ptr TableModel, row: int, column: int): ptr TableValue  {.cdecl.}
   TableSetCellValue* = proc (a1: ptr TableModelHandler, a2: ptr TableModel, a3: cint, a4: cint, a5: ptr TableValue) {.cdecl.}
 
   TableModelHandler* = object

@@ -502,15 +502,18 @@ proc newImage*(width, height: float): Image =
 # -------------------- Table --------------------------------------
 
 export TableValueType, TableValue
+export newTableValueString
 
 type
   Table* = ref object of Widget
     columns*: seq[TableValueType]
-    tableModelHandler*: TableModelHandler
+    # model handler must stick to something else,
+    # or callbacks will get washed by GC
+    mh*: TableModelHandler
     impl*: ptr rawui.Table
 
-proc getTableNumColumnsProc(table: Table): TableNumColumns =
-  var s =  table.columns.len
+proc getTableNumColumnsProc(num: int): TableNumColumns =
+  var value = unsafeAddr(num)
   proc cb(a1: ptr TableModelHandler, a2: ptr rawui.TableModel): cint {.cdecl.} =
     5
   return cb
@@ -525,8 +528,9 @@ proc getTableNumRowsProc(table: Table): TableNumRows =
     return 10
   return cb
 
-proc getTableCellValueProc(table: Table): TableCellValue =
-  proc cb(mh: ptr TableModelHandler, m: ptr TableModel; row: int, column: int): ptr TableValue {.cdecl.} =
+proc getTableCellValueProc(fn: proc(row, col: int): ptr TableValue): TableCellValue =
+  proc cb(mh: ptr TableModelHandler, m: ptr TableModel; row: int, column: int): ptr TableValue  {.cdecl.}  =
+    #echo table.columns
     result = newTableValueString("hello row " & $row & " x col " & $column)
   return cb
 
@@ -541,19 +545,23 @@ proc appendTextColumn*(table: Table, name: string, textModelColumn, textEditable
 proc newTableModel*() =
   discard
 
-proc newTable*(columns: seq[TableValueType]): Table =
+proc newTable*(columns: seq[TableValueType], cellValue: proc(row, col: int): ptr TableValue): Table =
   newFinal result
 
   result.columns = columns
 
-  result.tableModelHandler.numColumns = getTableNumColumnsProc(result)
-  result.tableModelHandler.columnType = getTableColumnTypeProc(result)
-  result.tableModelHandler.numRows = getTableNumRowsProc(result)
-  result.tableModelHandler.cellValue  = getTableCellValueProc(result)
-  result.tableModelHandler.setCellValue = getTableSetCellValueProc(result)
+  var aa: cstring = "aa"
+
+  result.mh.numColumns = getTableNumColumnsProc(columns.len)
+  result.mh.columnType = getTableColumnTypeProc(result)
+  result.mh.numRows = getTableNumRowsProc(result)
+  result.mh.cellValue  = getTableCellValueProc(cellValue)
+  #result.mh.cellValue  = proc(mh: ptr TableModelHandler, m: ptr TableModel; row: int, column: int): ptr TableValue =
+  #  return cellValue(row, column)
+  result.mh.setCellValue = getTableSetCellValueProc(result)
 
   var tableParams: TableParams
-  tableParams.model = newTableModel(addr result.tableModelHandler)
+  tableParams.model = newTableModel(addr result.mh)
   tableParams.rowBackgroundColorModelColumn = -1
 
   result.impl = rawui.newTable(addr tableParams)
