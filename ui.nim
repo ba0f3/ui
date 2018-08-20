@@ -529,9 +529,10 @@ proc getTableNumRowsProc(table: Table): TableNumRows =
   return cb
 
 proc getTableCellValueProc(fn: proc(row, col: int): ptr TableValue): TableCellValue =
-  proc cb(mh: ptr TableModelHandler, m: ptr TableModel; row: int, column: int): ptr TableValue  {.cdecl.}  =
+  proc cb(mh: ptr TableModelHandler, m: ptr TableModel; row: int, column: int): ptr TableValue  =
+    result = fn(row, column)
     #echo table.columns
-    result = newTableValueString("hello row " & $row & " x col " & $column)
+    #result = newTableValueString("hello row " & $row & " x col " & $column)
   return cb
 
 proc getTableSetCellValueProc(table: Table): TableSetCellValue =
